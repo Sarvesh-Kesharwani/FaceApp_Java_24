@@ -178,9 +178,6 @@ public class MainActivity extends AppCompatActivity {
             try {
                 s23 = new Socket(HOST, Port);
                 pw23 = new PrintWriter(s23.getOutputStream());
-            } catch (UnknownHostException e) {
-                System.out.println("Fail");
-                e.printStackTrace();
             } catch (IOException e) {
                 System.out.println("Fail");
                 e.printStackTrace();
@@ -190,15 +187,6 @@ public class MainActivity extends AppCompatActivity {
             int nameBytesLength = nameBytes.length;//no of charaters in the name
             String nameBytesLengthString = Integer.toString(nameBytesLength);
 
-            /*while(s23 == null || pw23==null)
-            {
-                Log.d("ConnectionError:","connection is null");
-                Log.d("ConnectionError:","Trying to initialize socket again!");
-                Log.d("ConnectionError:","printwriter is null");
-                Log.d("ConnectionError:","Trying to initialize printwriter again!");
-                s23 = new Socket(HOST, Port);
-                pw23 = new PrintWriter(s23.getOutputStream());
-            }*/
             //send name_length
 
                 if (nameBytesLength < 100) {
@@ -218,9 +206,6 @@ public class MainActivity extends AppCompatActivity {
             try {
                 s1 = new Socket(HOST, Port);
                 pw1 = new PrintWriter(s1.getOutputStream());
-            } catch (UnknownHostException e) {
-                System.out.println("Fail");
-                e.printStackTrace();
             } catch (IOException e) {
                 System.out.println("Fail");
                 e.printStackTrace();
@@ -246,9 +231,6 @@ public class MainActivity extends AppCompatActivity {
                 //making 3rd connection with pyjnius for sending photo
                 try {
                     s2 = new Socket(HOST, Port);
-                } catch (UnknownHostException e) {
-                    System.out.println("Fail");
-                    e.printStackTrace();
                 } catch (IOException e) {
                     System.out.println("Fail");
                     e.printStackTrace();
@@ -256,8 +238,7 @@ public class MainActivity extends AppCompatActivity {
                 if(s2 != null)
                 {
                     DataOutputStream dos = new DataOutputStream(s2.getOutputStream());
-                    /*DataInputStream dis = new DataInputStream(s2.getInputStream());
-                    dis.read();*/
+
                     //encoding delimeter string to utf-8 encoding
                     ByteBuffer byteBuffer = StandardCharsets.UTF_8.encode("?start\n");
                     byte [] buff = new byte [byteBuffer.remaining()];
