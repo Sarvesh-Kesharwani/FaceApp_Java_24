@@ -21,6 +21,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageSwitcher;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -107,9 +108,14 @@ public class MainActivity extends AppCompatActivity {
         photoImage = findViewById(R.id.photoImage);
         sendButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                send sendcode = new send();
-                name = nameText.getText().toString();
-                sendcode.execute();
+                if(photoBitmap != null)
+                {
+                    send sendcode = new send();
+                    name = nameText.getText().toString();
+                    sendcode.execute();
+                }
+                else
+                    displayToast("Select Photo!");
             }
         });
 
@@ -134,8 +140,17 @@ public class MainActivity extends AppCompatActivity {
             uri = data.getData();
             try {
                 Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(),uri);
-                photoImage.setImageBitmap(bitmap);
-                photoBitmap = bitmap;
+                if(bitmap != null)
+                {
+                    photoImage.setImageBitmap(bitmap);
+                    photoBitmap = bitmap;
+                }
+                else
+                {
+                    //int id = getResources().getIdentifier("com.example.faceapp_java_24/"+StringGenerated,null,null);
+                    displayToast("Select Photo!");
+                }
+
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
@@ -152,6 +167,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void displayToast(String ToastMessage)
+    {
+        Toast.makeText(MainActivity.this,ToastMessage,Toast.LENGTH_SHORT).show();
+    }
+
     ///////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
     class send extends AsyncTask<Void, Void, Void> {
@@ -160,6 +180,8 @@ public class MainActivity extends AppCompatActivity {
         Socket s1;
         PrintWriter pw1;
         Socket s2;
+        Socket s4;
+        PrintWriter pw4;
 
         @Override
         protected Void doInBackground(Void... params) {
@@ -171,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
             }
             //send photo
             sendFile();
+            recieveFile();
             return null;
         }
 
@@ -284,39 +307,51 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
-          /*  void sendPhotoEncoding () throws UnknownHostException, IOException {
-                try {
-                    s1 = new Socket(HOST, Port);
-                    pw1 = new PrintWriter(s1.getOutputStream());
-                } catch (UnknownHostException e) {
-                    System.out.println("Fail");
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    System.out.println("Fail");
-                    e.printStackTrace();
-                }
-                /*
-                System.out.println("Executing python3 script:");
-                Process p = Runtime.getRuntime().exec("python3"+);
-                BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                String ret = in.readLine();
-                Log.d("tyyo","value is :"+ret);
-                s.close();
-            }*/
 
-        public void receiveFileFromServer () throws UnknownHostException, IOException {
-            Socket sock = new Socket("192.168.1.10", 5555);
-            byte[] mybytearray = new byte[1024];
-            InputStream is = sock.getInputStream();
-            FileOutputStream fos = new FileOutputStream("/home/files/file.jpeg");
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
-            int bytesRead = is.read(mybytearray, 0, mybytearray.length);
-            bos.write(mybytearray, 0, bytesRead);
-            bos.close();
-            sock.close();
+        void recieveFile()
+        {
+            try {
+                s4 = new Socket(HOST, Port);
+            } catch (IOException e) {
+                System.out.println("Fail");
+                e.printStackTrace();
+            }
+
+            try {
+                InputStream sin = s4.getInputStream();
+                DataInputStream dis = new DataInputStream(sin);
+
+                if(s4 != null)
+                {
+                    //receiving name_size
+                    /*byte[] nameSize_bytes = new byte[20];
+                    dis.read(nameSize_bytes, 0, 2);
+                    ByteBuffer wrapped = ByteBuffer.wrap(nameSize_bytes); // big-endian by default
+                    int nameSize = wrapped.getInt();
+                    Log.d("recname", "nameSize is: "+String.valueOf(nameSize));*/
+
+                    //receiving name
+                    /*byte [] name = new byte [20];
+                    dis.read(name);
+                    String name_string = new String(name);
+                    Log.d("recname", "name is: "+name_string);*/
+
+
+                    byte temp = dis.readByte();
+                    String name = ""+temp;
+                    Log.d("recname", "name is: "+name);
+                    /*while(temp_string != "$#")
+                    {
+
+                    }*/
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 /////////////////////////////////////////////////////////////////////////
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -331,4 +366,6 @@ public class MainActivity extends AppCompatActivity {
         return NavigationUI.navigateUp(navController, mAppBarConfiguration)
                 || super.onSupportNavigateUp();
     }
+
+
 }
