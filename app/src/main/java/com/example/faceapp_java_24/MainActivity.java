@@ -48,7 +48,6 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -60,8 +59,8 @@ import androidx.appcompat.widget.Toolbar;
 public class MainActivity extends AppCompatActivity {
 
     //////////////////////////////////////////////////
-    public String HOST = "192.168.43.215";
-    public int Port = 1234;
+    public String HOST = "192.168.43.205";
+    public int Port = 1998;
     public String message;
     public String name;
     public Drawable photo;
@@ -155,11 +154,12 @@ public class MainActivity extends AppCompatActivity {
     ///////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
     class send extends AsyncTask<Void, Void, Void> {
-        Socket s;
+        Socket s23;
         PrintWriter pw23;
         Socket s1;
         PrintWriter pw1;
         Socket s2;
+
         @Override
         protected Void doInBackground(Void... params) {
             //send name
@@ -176,8 +176,8 @@ public class MainActivity extends AppCompatActivity {
         void sendName() throws IOException {
             //prepration
             try {
-                s = new Socket(HOST, Port);
-                pw23 = new PrintWriter(s .getOutputStream());
+                s23 = new Socket(HOST, Port);
+                pw23 = new PrintWriter(s23.getOutputStream());
             } catch (UnknownHostException e) {
                 System.out.println("Fail");
                 e.printStackTrace();
@@ -190,8 +190,17 @@ public class MainActivity extends AppCompatActivity {
             int nameBytesLength = nameBytes.length;//no of charaters in the name
             String nameBytesLengthString = Integer.toString(nameBytesLength);
 
+            /*while(s23 == null || pw23==null)
+            {
+                Log.d("ConnectionError:","connection is null");
+                Log.d("ConnectionError:","Trying to initialize socket again!");
+                Log.d("ConnectionError:","printwriter is null");
+                Log.d("ConnectionError:","Trying to initialize printwriter again!");
+                s23 = new Socket(HOST, Port);
+                pw23 = new PrintWriter(s23.getOutputStream());
+            }*/
             //send name_length
-            if(pw23 != null) {
+
                 if (nameBytesLength < 100) {
                     if (nameBytesLength <= 9)
                         pw23.write('0' + nameBytesLengthString);
@@ -201,11 +210,9 @@ public class MainActivity extends AppCompatActivity {
                 pw23.write(name);
                 pw23.flush();
                 pw23.close();
-                s.close();
-            }
+                s23.close();
         }
 
-        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         void sendFile()
         {
             try {
