@@ -46,6 +46,7 @@ import java.net.UnknownHostException;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 import androidx.annotation.Nullable;
 import androidx.navigation.NavController;
@@ -248,12 +249,12 @@ public class MainActivity extends AppCompatActivity {
                 {
                     DataOutputStream dos = new DataOutputStream(s2.getOutputStream());
 
-                    //sending photo delimeter
+                    /*//sending photo delimeter
                     dos.write(EncodeToUTF8("?start\n"), 0, "?start\n".length());
 
                    //send photo size with new way
                     String strSize = (byteArray.length) + "\n";
-                    dos.write(EncodeToUTF8(strSize));
+                    dos.write(EncodeToUTF8(strSize));*/
 
                    /* int len = 0 ;
                     int bytesRead = 0;
@@ -264,8 +265,9 @@ public class MainActivity extends AppCompatActivity {
                         len = len + bytesRead;
                         dos.write(buffer, 0, bytesRead);
                     }*/
+                    //dos.write(EncodeToUTF8("$#\n"));
                     dos.write(byteArray, 0,byteArray.length);
-                    dos.write(EncodeToUTF8("\n"));
+                    //Log.d("image", Arrays.toString(byteArray));
                     Log.d("photo","photo was wrote in dos");
 
                     dos.flush();
