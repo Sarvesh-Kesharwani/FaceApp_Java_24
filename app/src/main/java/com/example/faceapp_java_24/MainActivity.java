@@ -201,6 +201,15 @@ public class MainActivity extends AppCompatActivity {
                 s23.close();
         }
 
+
+        byte [] EncodeToUTF8(String string)
+        {
+            //encoding delimeter string to utf-8 encoding
+            ByteBuffer byteBuffer = StandardCharsets.UTF_8.encode(string);
+            byte [] buff = new byte [byteBuffer.remaining()];
+            byteBuffer.get(buff, 0, buff.length);
+            return buff;
+        }
         void sendFile()
         {
             try {
@@ -239,20 +248,14 @@ public class MainActivity extends AppCompatActivity {
                 {
                     DataOutputStream dos = new DataOutputStream(s2.getOutputStream());
 
-                    //encoding delimeter string to utf-8 encoding
-                    ByteBuffer byteBuffer = StandardCharsets.UTF_8.encode("?start\n");
-                    byte [] buff = new byte [byteBuffer.remaining()];
-                    byteBuffer.get(buff, 0, buff.length);
-
                     //sending photo delimeter
-                    dos.write(buff, 0, "?start\n".length());
+                    dos.write(EncodeToUTF8("?start\n"), 0, "?start\n".length());
 
-                   /* //send photo size with new way
+                   //send photo size with new way
                     String strSize = (byteArray.length) + "\n";
-                    int intSize = Integer.parseInt(strSize);
-                    dos.write(intSize);*/
+                    dos.write(EncodeToUTF8(strSize));
 
-                    int len = 0 ;
+                   /* int len = 0 ;
                     int bytesRead = 0;
                     byte [] buffer = new byte [1024];
                     while (len<byteArray.length)
@@ -260,8 +263,11 @@ public class MainActivity extends AppCompatActivity {
                         bytesRead = inn.read(buffer, 0, Math.min(buffer.length, byteArray.length-len));
                         len = len + bytesRead;
                         dos.write(buffer, 0, bytesRead);
-                    }
+                    }*/
+                    dos.write(byteArray, 0,byteArray.length);
+                    dos.write(EncodeToUTF8("\n"));
                     Log.d("photo","photo was wrote in dos");
+
                     dos.flush();
                     stream.close();
                     inn.close();
