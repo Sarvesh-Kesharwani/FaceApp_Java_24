@@ -1,67 +1,53 @@
 package com.example.faceapp_java_24;
 
-import java.io.OutputStream;
-import java.lang.Integer;
-
-import android.content.ContentProvider;
-import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
-import android.text.Html;
 import android.util.Log;
-import android.view.View;
 import android.view.Menu;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.navigation.NavigationView;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-
-import androidx.annotation.Nullable;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-
-import static javax.net.ssl.SSLEngineResult.Status.OK;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -148,6 +134,8 @@ public class MainActivity extends AppCompatActivity {
                 if(bitmap != null)
                 {
                     photoImage.setImageBitmap(bitmap);
+                    Log.d("recna", "Original PhotoBitmap is:" + bitmap);
+
                     photoBitmap = bitmap;
                 }
                 else
@@ -347,7 +335,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.d("recna", "ImageSize is: " + size);
 
                             // Create buffers
-                            byte[] msg_buff = new byte[1024];
+
                             byte[] img_buff = new byte[size];
                             int img_offset = 0;
 
@@ -389,31 +377,61 @@ public class MainActivity extends AppCompatActivity {
 
                             int length = 0;
                             String mServerMessage2 = mBufferIn.readLine();
-                            if(mServerMessage2 == "?imageFile")
+                            int bytesRead;
+                            byte[] msg_buff = new byte[2048];
+                            if(mServerMessage2.equals("?imageFile"))
                             {
+                                String data = mBufferIn.readLine();
 
-                                while(length<size)
+                                Log.d("recna","Read Successfully.");
+                                Log.d("recna","Read Data is: "+ data);
+
+                                /*while(length<size)
                                 {
-                                    int bytesRead = dis.read(msg_buff, 0, Math.min(msg_buff.length, (size - length)));
+                                    Log.d("recna", "Start reading image bytes...");
+                                    Log.d("recna", String.valueOf(Math.min(1024, size - length)));
+                                    bytesRead = dis.read(img_buff);
+                                    Log.d("recna", String.valueOf(bytesRead));
                                     length += bytesRead;
                                     fos.write(msg_buff);
+                                    Log.d("recna", "End reading image bytes...");
+                                }*/
+                                if(data != null)
+                                {
+                                    byte[] data_bytes = data.getBytes();
+                                    Log.d("recna", "my data_bytes is: "+ data_bytes);
+                                    Log.d("recna", "my data_byte's length is: "+ data_bytes.length);
+
+                                    //Convert Recieved byteArray to JPEG image first.
+                                    YuvImage yuvimage = new YuvImage(data_bytes, ImageFormat.NV21,100,100,null);
+                                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                    yuvimage.compressToJpeg(new Rect(0,0,100,100),80,baos);
+                                    byte[] jdata = baos.toByteArray();
+
+                                    //Now Covert JPEG-Image to bitmap.
+                                    Bitmap data_bitmap = BitmapFactory.decodeByteArray(jdata, 0, jdata.length);
+
+                                    Log.d("recna", "my data_bitmap is: "+ data_bitmap);
+                                    Log.d("recna", "wrote successfuly.");
+                                    Log.d("recna", "my bitmap is: "+data_bitmap);
+
+                                    try {
+                                        fos = new FileOutputStream(imageFile);
+                                        //Use compress method on Bitmap object to write image to OutputStream
+                                        data_bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                                        Log.d("recna", "Saving image in Directory...");
+                                        fos.close();
+
+
+
+                                        //Send OK byte[]
+                                        byte[] ok = new byte[]{0x4F, 0x4B};
+                                        sout.write(ok);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
                                 }
-                                fos.close();
                             }
-
-                           /* try {
-                                fos = new FileOutputStream(imageFile);
-                                //Use compress method on Bitmap object to write image to OutputStream
-                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
-                                Log.d("recna", "Saving image in Directory...");
-                                fos.close();
-
-                                //Send OK byte[]
-                                byte[] ok = new byte[]{0x4F, 0x4B};
-                                sout.write(ok);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }*/
                         }
                         mRun = false;
                     }
