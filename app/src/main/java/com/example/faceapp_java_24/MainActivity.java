@@ -3,9 +3,6 @@ package com.example.faceapp_java_24;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.ImageFormat;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -66,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
     //////////////////////////////////////////////////
     private AppBarConfiguration mAppBarConfiguration;
     public FileOutputStream ImageStream;
+    String PersonName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -167,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
         PrintWriter pw1;
         Socket s2;
         Socket s4;
-        PrintWriter pw4;
+        Socket s5;
 
         @Override
         protected Void doInBackground(Void... params) {
@@ -325,6 +323,7 @@ public class MainActivity extends AppCompatActivity {
                             {
                                 String name = String.valueOf(mBufferIn.readLine());
                                 Log.d("recna", "Name is: " + name);
+                                PersonName = name;
                             }
                         }
                         //Check if data is image and receive image
@@ -334,11 +333,6 @@ public class MainActivity extends AppCompatActivity {
                             // Get length of image byte array
                             int size = Integer.parseInt(mBufferIn.readLine());
                             Log.d("recna", "ImageSize is: " + size);
-
-                            // Create buffers
-
-                            byte[] img_buff = new byte[size];
-                            int img_offset = 0;
 
                             /*while (true)
                             {
@@ -371,66 +365,45 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                             //save images
-                            String fileName = name+".jpeg";
+                            String fileName = PersonName +".jpeg";
                             File imageFile = new File(myDir, fileName);
                             Log.d("recna", "Making File at Directory...");
 
+                            byte[] data = new byte[size];
                             String mServerMessage2 = mBufferIn.readLine();
                             if(mServerMessage2.equals("?imageFile"))
                             {
-                                String data = mBufferIn.readLine();
+                                s4.close();
+                                try {
+                                    s5 = new Socket(HOST, Port);
+                                } catch (IOException e) {
+                                    System.out.println("Fail");
+                                    e.printStackTrace();
+                                }
+
+                                InputStream sinn = s5.getInputStream();
+                                DataInputStream diss = new DataInputStream(sinn);
+
+                                Log.d("recna","Trying new method");
+                                //String data = mBufferIn.readLine();
+                                diss.readFully(data, 0, data.length);
                                 Log.d("recna","Read Successfully.");
                                 Log.d("recna","Read Data is: "+ data);
 
-                                /*while(length<size)
-                                {
-                                    Log.d("recna", "Start reading image bytes...");
-                                    Log.d("recna", String.valueOf(Math.min(1024, size - length)));
-                                    bytesRead = dis.read(img_buff);
-                                    Log.d("recna", String.valueOf(bytesRead));
-                                    length += bytesRead;
-                                    fos.write(msg_buff);
-                                    Log.d("recna", "End reading image bytes...");
-                                }*/
-                                if(data != null)
-                                {
-                                    byte[] data_bytes = data.getBytes();
-                                    Log.d("recna", "my data_bytes is: "+ data_bytes);
-                                    Log.d("recna", "my data_byte's length is: "+ data_bytes.length);
 
-                                    //Convert Recieved byteArray to JPEG image first.
-                                    YuvImage yuvimage = new YuvImage(data_bytes, ImageFormat.NV21,800,600,null);
-                                    ByteArrayOutputStream baos = new ByteArrayOutputStream(data_bytes.length);//added this length
-                                    yuvimage.compressToJpeg(new Rect(0,0,yuvimage.getWidth(),yuvimage.getHeight()),100,baos);
-                                    byte[] jdata = baos.toByteArray();
-
-                                    //Now Covert JPEG-Image to bitmap.
-                                    Bitmap data_bitmap = BitmapFactory.decodeByteArray(jdata, 0, jdata.length);
-
-                                    try {
-                                        FileOutputStream fos = new FileOutputStream(imageFile);
-                                        //Use compress method on Bitmap object to write image to OutputStream
-                                        data_bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-                                        Log.d("recna", "Saving image in Directory...");
-                                        fos.close();
-
-
-                                        //Send OK byte[]
-                                        byte[] ok = new byte[]{0x4F, 0x4B};
-                                        sout.write(ok);
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
+                                FileOutputStream out = new FileOutputStream(imageFile);
+                                Bitmap data_bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+                                data_bitmap.compress(Bitmap.CompressFormat.PNG, 90, out);
+                                out.flush();
+                                out.close();
+                                s5.close();
                                 }
                             }
                         }
                         mRun = false;
                     }
-                }
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
+                } catch (IOException ex) {
+                ex.printStackTrace();
             }
         }
     }
