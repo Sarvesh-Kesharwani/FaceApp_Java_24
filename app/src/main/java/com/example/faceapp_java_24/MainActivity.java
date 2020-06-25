@@ -354,7 +354,7 @@ public class MainActivity extends AppCompatActivity {
                             }*/
                             //create file_storage path
                             /*File myDir = new File(getApplicationContext().getFilesDir(),"FaceApp"+File.separator+"Images");
-                            Log.d("recna", "FileDir is: " + getApplicationContext().getFilesDir());*/
+                            Log.d("recna", "FileDir is: " + getApplicationContext().getFilesDir());*/ //let me commit
 
                             File myDir = new File(Environment.getExternalStorageDirectory()+"/DCIM");
                             if(!myDir.exists())
