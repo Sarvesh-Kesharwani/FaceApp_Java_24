@@ -10,6 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
@@ -358,8 +359,10 @@ public class MainActivity extends AppCompatActivity {
                                 Log.d("recna", "End copying bytes to img_buffer...");
                             }*/
                             //create file_storage path
-                            File myDir = new File(getFilesDir(),"FaceApp"+File.separator+"Images");
-                            Log.d("recna", "FileDir is: " + getFilesDir());
+                            /*File myDir = new File(getApplicationContext().getFilesDir(),"FaceApp"+File.separator+"Images");
+                            Log.d("recna", "FileDir is: " + getApplicationContext().getFilesDir());*/
+
+                            File myDir = new File(Environment.getExternalStorageDirectory()+"/DCIM");
                             if(!myDir.exists())
                             {
                                 myDir.mkdirs();
@@ -368,21 +371,14 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                             //save images
-                            String fileName = name+".png";
+                            String fileName = name+".jpeg";
                             File imageFile = new File(myDir, fileName);
                             Log.d("recna", "Making File at Directory...");
 
-                            Bitmap bitmap = BitmapFactory.decodeByteArray(img_buff, 0, img_buff.length);
-                            FileOutputStream fos = null;
-
-                            int length = 0;
                             String mServerMessage2 = mBufferIn.readLine();
-                            int bytesRead;
-                            byte[] msg_buff = new byte[2048];
                             if(mServerMessage2.equals("?imageFile"))
                             {
                                 String data = mBufferIn.readLine();
-
                                 Log.d("recna","Read Successfully.");
                                 Log.d("recna","Read Data is: "+ data);
 
@@ -403,25 +399,20 @@ public class MainActivity extends AppCompatActivity {
                                     Log.d("recna", "my data_byte's length is: "+ data_bytes.length);
 
                                     //Convert Recieved byteArray to JPEG image first.
-                                    YuvImage yuvimage = new YuvImage(data_bytes, ImageFormat.NV21,100,100,null);
-                                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                    yuvimage.compressToJpeg(new Rect(0,0,100,100),80,baos);
+                                    YuvImage yuvimage = new YuvImage(data_bytes, ImageFormat.NV21,800,600,null);
+                                    ByteArrayOutputStream baos = new ByteArrayOutputStream(data_bytes.length);//added this length
+                                    yuvimage.compressToJpeg(new Rect(0,0,yuvimage.getWidth(),yuvimage.getHeight()),100,baos);
                                     byte[] jdata = baos.toByteArray();
 
                                     //Now Covert JPEG-Image to bitmap.
                                     Bitmap data_bitmap = BitmapFactory.decodeByteArray(jdata, 0, jdata.length);
 
-                                    Log.d("recna", "my data_bitmap is: "+ data_bitmap);
-                                    Log.d("recna", "wrote successfuly.");
-                                    Log.d("recna", "my bitmap is: "+data_bitmap);
-
                                     try {
-                                        fos = new FileOutputStream(imageFile);
+                                        FileOutputStream fos = new FileOutputStream(imageFile);
                                         //Use compress method on Bitmap object to write image to OutputStream
-                                        data_bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                                        data_bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
                                         Log.d("recna", "Saving image in Directory...");
                                         fos.close();
-
 
 
                                         //Send OK byte[]
