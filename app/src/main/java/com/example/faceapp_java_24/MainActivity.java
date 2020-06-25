@@ -1,6 +1,9 @@
 package com.example.faceapp_java_24;
 
+import java.io.OutputStream;
 import java.lang.Integer;
+
+import android.content.ContentProvider;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -57,6 +60,8 @@ import androidx.navigation.ui.NavigationUI;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
+import static javax.net.ssl.SSLEngineResult.Status.OK;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -156,14 +161,6 @@ public class MainActivity extends AppCompatActivity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            ////////////////////////////////
-            try (FileOutputStream fos = new FileOutputStream("")) {
-                photoBitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
-                ImageStream = fos;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            ////////////////////////////////////
         }
     }
 
@@ -310,9 +307,11 @@ public class MainActivity extends AppCompatActivity {
 
         void recieveFile()
         {
-            try {
+            try
+            {
                 s4 = new Socket(HOST, Port);
-            } catch (IOException e) {
+            } catch (IOException e)
+            {
                 System.out.println("Fail");
                 e.printStackTrace();
             }
@@ -320,32 +319,88 @@ public class MainActivity extends AppCompatActivity {
             try {
                 InputStream sin = s4.getInputStream();
                 DataInputStream dis = new DataInputStream(sin);
+                BufferedReader mBufferIn = new BufferedReader(new InputStreamReader(s4.getInputStream()));
 
+                OutputStream sout = s4.getOutputStream();
+
+                Boolean mRun = true;
                 if(s4 != null)
                 {
-                    //receiving name_size
-                    /*byte[] nameSize_bytes = new byte[20];
-                    dis.read(nameSize_bytes, 0, 2);
-                    ByteBuffer wrapped = ByteBuffer.wrap(nameSize_bytes); // big-endian by default
-                    int nameSize = wrapped.getInt();
-                    Log.d("recname", "nameSize is: "+String.valueOf(nameSize));*/
-
-                    //receiving name
-                    /*byte [] name = new byte [20];
-                    dis.read(name);
-                    String name_string = new String(name);
-                    Log.d("recname", "name is: "+name_string);*/
-
-
-                    byte temp = dis.readByte();
-                    String name = ""+temp;
-                    Log.d("recname", "name is: "+name);
-                    /*while(temp_string != "$#")
+                    while (mRun)
                     {
+                        String mServerMessage = mBufferIn.readLine();
+                        if (mServerMessage != null)
+                        {
+                            //receive name
+                            if (mServerMessage.equals("?name"))
+                            {
+                                String name = String.valueOf(mBufferIn.readLine());
+                                Log.d("recna", "Name is: " + name);
+                            }
+                        }
+                        //Check if data is image and receive image
+                        String mServerMessage1 = mBufferIn.readLine();
+                        if (mServerMessage1.equals("?start")) {
+                            // Get length of image byte array
+                            int size = Integer.parseInt(mBufferIn.readLine());
+                            Log.d("recna", "ImageSize is: " + size);
 
-                    }*/
+                            // Create buffers
+                            byte[] msg_buff = new byte[1024];
+                            byte[] img_buff = new byte[size];
+                            int img_offset = 0;
+
+                            while (true) {
+                                int bytes_read = dis.read(msg_buff, 0, msg_buff.length);
+                                if (bytes_read == -1) {
+                                    break;
+                                }
+                                //copy bytes into img_buff
+                                System.arraycopy(msg_buff, 0, img_buff, img_offset, bytes_read);
+                                img_offset += bytes_read;
+                                if (img_offset >= size) {
+                                    break;
+                                }
+                            }
+                            //save image to app's storage
+                           /* ContextWrapper cw = new ContextWrapper(getApplicationContext());
+                            String imageDir = "imageDir";
+                            File directory = cw.getDir(imageDir, Context.MODE_PRIVATE);
+                            String fileName = name+".png";
+                            File mypath = new File(directory,fileName);*/
+
+                            //create file_storage path
+                            File myDir = new File(getFilesDir(),"FaceApp"+File.separator+"Images");
+                            if(!myDir.exists())
+                            {
+                                myDir.mkdirs();
+                            }
+
+                            //save images
+                            String fileName = name+".png";
+                            File imageFile = new File(myDir, fileName);
+
+                            Bitmap bitmap = BitmapFactory.decodeByteArray(img_buff, 0, img_buff.length);
+                            FileOutputStream fos = null;
+                            try {
+                                fos = new FileOutputStream(imageFile);
+                                //Use compress method on Bitmap object to write image to OutputStream
+                                bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                                fos.close();
+
+                                //Send OK byte[]
+                                byte[] ok = new byte[]{0x4F, 0x4B};
+                                sout.write(ok);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        mRun = false;
+                    }
                 }
-            } catch (IOException e) {
+            }
+            catch (IOException e)
+            {
                 e.printStackTrace();
             }
         }
