@@ -340,7 +340,8 @@ public class MainActivity extends AppCompatActivity {
                         }
                         //Check if data is image and receive image
                         String mServerMessage1 = mBufferIn.readLine();
-                        if (mServerMessage1.equals("?start")) {
+                        if (mServerMessage1.equals("?start"))
+                        {
                             // Get length of image byte array
                             int size = Integer.parseInt(mBufferIn.readLine());
                             Log.d("recna", "ImageSize is: " + size);
@@ -350,30 +351,24 @@ public class MainActivity extends AppCompatActivity {
                             byte[] img_buff = new byte[size];
                             int img_offset = 0;
 
-                            while (true)
+                            /*while (true)
                             {
                                 Log.d("recna", "Start copying bytes to img_buffer...");
 
                                 int bytes_read = dis.read(msg_buff, 0, msg_buff.length);
-                                if (bytes_read == -1) {
+                                if (bytes_read == -1)
+                                {
                                     break;
                                 }
                                 //copy bytes into img_buff
                                 System.arraycopy(msg_buff, 0, img_buff, img_offset, bytes_read);
                                 img_offset += bytes_read;
-                                if (img_offset >= size) {
+                                if (img_offset >= size)
+                                {
                                     break;
                                 }
                                 Log.d("recna", "End copying bytes to img_buffer...");
-
-                            }
-                            //save image to app's storage
-                           /* ContextWrapper cw = new ContextWrapper(getApplicationContext());
-                            String imageDir = "imageDir";
-                            File directory = cw.getDir(imageDir, Context.MODE_PRIVATE);
-                            String fileName = name+".png";
-                            File mypath = new File(directory,fileName);*/
-
+                            }*/
                             //create file_storage path
                             File myDir = new File(getFilesDir(),"FaceApp"+File.separator+"Images");
                             Log.d("recna", "FileDir is: " + getFilesDir());
@@ -391,7 +386,22 @@ public class MainActivity extends AppCompatActivity {
 
                             Bitmap bitmap = BitmapFactory.decodeByteArray(img_buff, 0, img_buff.length);
                             FileOutputStream fos = null;
-                            try {
+
+                            int length = 0;
+                            String mServerMessage2 = mBufferIn.readLine();
+                            if(mServerMessage2 == "?imageFile")
+                            {
+
+                                while(length<size)
+                                {
+                                    int bytesRead = dis.read(msg_buff, 0, Math.min(msg_buff.length, (size - length)));
+                                    length += bytesRead;
+                                    fos.write(msg_buff);
+                                }
+                                fos.close();
+                            }
+
+                           /* try {
                                 fos = new FileOutputStream(imageFile);
                                 //Use compress method on Bitmap object to write image to OutputStream
                                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
@@ -403,7 +413,7 @@ public class MainActivity extends AppCompatActivity {
                                 sout.write(ok);
                             } catch (Exception e) {
                                 e.printStackTrace();
-                            }
+                            }*/
                         }
                         mRun = false;
                     }
