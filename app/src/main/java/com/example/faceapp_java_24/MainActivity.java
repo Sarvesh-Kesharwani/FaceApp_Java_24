@@ -350,7 +350,10 @@ public class MainActivity extends AppCompatActivity {
                             byte[] img_buff = new byte[size];
                             int img_offset = 0;
 
-                            while (true) {
+                            while (true)
+                            {
+                                Log.d("recna", "Start copying bytes to img_buffer...");
+
                                 int bytes_read = dis.read(msg_buff, 0, msg_buff.length);
                                 if (bytes_read == -1) {
                                     break;
@@ -361,6 +364,8 @@ public class MainActivity extends AppCompatActivity {
                                 if (img_offset >= size) {
                                     break;
                                 }
+                                Log.d("recna", "End copying bytes to img_buffer...");
+
                             }
                             //save image to app's storage
                            /* ContextWrapper cw = new ContextWrapper(getApplicationContext());
@@ -371,14 +376,18 @@ public class MainActivity extends AppCompatActivity {
 
                             //create file_storage path
                             File myDir = new File(getFilesDir(),"FaceApp"+File.separator+"Images");
+                            Log.d("recna", "FileDir is: " + getFilesDir());
                             if(!myDir.exists())
                             {
                                 myDir.mkdirs();
+                                Log.d("recna", "Directory not found!");
+                                Log.d("recna", "Making Directory...");
                             }
 
                             //save images
                             String fileName = name+".png";
                             File imageFile = new File(myDir, fileName);
+                            Log.d("recna", "Making File at Directory...");
 
                             Bitmap bitmap = BitmapFactory.decodeByteArray(img_buff, 0, img_buff.length);
                             FileOutputStream fos = null;
@@ -386,6 +395,7 @@ public class MainActivity extends AppCompatActivity {
                                 fos = new FileOutputStream(imageFile);
                                 //Use compress method on Bitmap object to write image to OutputStream
                                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                                Log.d("recna", "Saving image in Directory...");
                                 fos.close();
 
                                 //Send OK byte[]
